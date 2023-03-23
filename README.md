@@ -10,9 +10,7 @@ In a tag-based strategy, ArgoCD controls deployments based on tags in a given re
 
 ### stage
 
-This workflow updates a given service helm chart with the latest appVersion and opens a PR with the changes.
-
-This could be triggered by a workflow in the application code repo and takes the new app version as an input.
+This workflow updates a given service helm chart with the latest appVersion and opens a PR with the changes. This could be triggered by a workflow in the application code repo and takes the new app version as an input.
 
 ### deploy
 
@@ -20,7 +18,7 @@ This runs when the stage PR is merged. It simply "moves" the service staging tag
 
 ### promote
 
-This workflow promotes a given service from staging to prod. As with the deploy workflow, it simply "moves" the service production tag to point at the same revision as the staging tag and ArgoCD handles the deployment. As an additional step, before moving the production tag it tags the revision it currently points at with a rollback tag. This allows for easy rollback as we can use this tag to know which reviosion we need to rollback to.
+This workflow promotes a given service from staging to prod. As with the deploy workflow, it simply "moves" the service production tag to point at the same revision as the staging tag and ArgoCD handles the deployment. As an additional step, before moving the production tag it tags the revision it currently points at with a rollback tag. This allows for easy rollback as we can use this tag to know which revision we need to rollback to.
 
 ### rollback
 
@@ -62,6 +60,8 @@ Triggering the `rollback` workflow will result in the production tag being moved
 
 ![rollback](./diagrams/gitops-flow-rollback.png)
 
+ArgoCD will resync to the chart at that previous revision.
+
 ## Pros & Cons
 
 ### Pros
@@ -71,14 +71,14 @@ Triggering the `rollback` workflow will result in the production tag being moved
 - doesn't require updates to ArgoCD application manifests
 - deploy to staging could be fully automated if desired i.e. auto merge the PR
 - no need for PR for promotion to prod
-- really fast & easy rollback
-- simple repo/chart structure - can support many environments without duplication of the charts
+- fast & easy rollback
+- simple repo/chart structure - can support many services & environments on a single branch without any duplication of the charts
 
 ### Cons
 
 - although git is still the source of truth, HEAD on main/master is not
-- harder to get a view of the deployed versions from git - you'd need to look at tags or get this info from elsewhere e.g. the k8s cluster
-- many services in a single repo would mean many tags
+- harder to get a view of the deployed versions from git - you'd need to look at tags or get this info from elsewhere e.g. the k8s cluster or ArgoCD
+- many services / environments in a single repo would mean many tags
 
 ### TODO
 
