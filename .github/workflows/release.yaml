@@ -1,0 +1,64 @@
+name: Release to Staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: Name of the service
+        type: string
+        required: true
+      app_version:
+        description: Version of the service to set in the helm chart appVersion
+        type: string
+        required: false
+
+run-name: Release ${{inputs.service}} to Staging
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    name: Release ${{inputs.service}} to Staging
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get current chart version
+        id: current_version
+        run: |
+          echo "version=$(yq '.version' charts/${{ inputs.service }}/Chart.yaml)" >> $GITHUB_OUTPUT
+
+      - name: Calculate next chart version
+        uses: technicallyjosh/next-version-action@v1
+        id: version
+        with:
+          version: ${{ steps.current_version.outputs.version }}
+          type: minor
+
+      - name: Create branch with release changes
+        id: create_release
+        shell: bash
+        run: |
+          if [[ "${{inputs.app_version}}" != "" ]]; then
+            yq -i '.appVersion = "${{inputs.app_version}}"' charts/${{inputs.service}}/Chart.yaml
+            yq -i '.version = "${{ steps.version.outputs.next_version }}"' charts/${{inputs.service}}/Chart.yaml
+          fi
+          if [[ "$(git status --porcelain)" != "" ]]; then
+            git config --global user.email "${GITHUB_ACTOR}"
+            git config --global user.name "${GITHUB_ACTOR}@users.noreply.github.com"
+            git checkout -b 'update-${{ inputs.service }}-chart-${{github.run_number}}'
+            git add .
+            git commit -m "Update chart"
+            git push -u origin HEAD
+            echo 'changes=true' >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create pull request
+        if: steps.create_release.outputs.changes == 'true'
+        run: |
+          gh pr create \
+          --base main \
+          --body 'Updating chart for ${{inputs.service}}' \
+          --head 'update-${{ inputs.service }}-chart-${{github.run_number}}' \
+          --label 'service/${{ inputs.service }}' \
+          --title 'Update ${{inputs.service}} Chart'
