@@ -20,7 +20,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          label=$(gh pr view 1 --json labels --jq '.labels[] | select(.name | startswith("service/")).name')
+          label=$(gh pr view ${{ github.event.number }} --json labels --jq '.labels[] | select(.name | startswith("service/")).name')
           tag="${label#service/}-staging"
           git tag -f "$tag"
           git push -f origin "$tag"
