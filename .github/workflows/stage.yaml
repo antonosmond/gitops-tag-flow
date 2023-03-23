@@ -62,4 +62,4 @@ jobs:
           --body 'Updating chart for ${{inputs.service}}' \
           --head 'update-${{ inputs.service }}-chart-${{github.run_number}}' \
           --label 'service/${{ inputs.service }}' \
-          --title 'Update ${{inputs.service}} Chart'
+          --title 'Update ${{inputs.service}} chart'
