@@ -1,0 +1,25 @@
+name: Promote to production
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: Name of the service
+        type: string
+        required: true
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: tag
+        run: |
+          if git rev-parse "${{ inputs.service }}-production" > /dev/null 2>&1; then
+            git tag "${{ inputs.service }}-production-rollback" "${{ inputs.service }}-production"
+          fi
+          git tag -f "${{ inputs.service }}-production" "${{ inputs.service }}-staging"
+          git push -f --tags

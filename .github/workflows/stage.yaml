@@ -1,4 +1,4 @@
-name: Release to Staging
+name: Stage release
 
 on:
   workflow_dispatch:
@@ -12,12 +12,12 @@ on:
         type: string
         required: false
 
-run-name: Release ${{inputs.service}} to Staging
+run-name: Stage ${{inputs.service}}
 
 jobs:
   release:
     runs-on: ubuntu-latest
-    name: Release ${{inputs.service}} to Staging
+    name: Stage ${{inputs.service}}
     steps:
 
       - name: Checkout
@@ -35,9 +35,8 @@ jobs:
           version: ${{ steps.current_version.outputs.version }}
           type: minor
 
-      - name: Create branch with release changes
-        id: create_release
-        shell: bash
+      - name: Create branch with chart updates
+        id: branch
         run: |
           if [[ "${{inputs.app_version}}" != "" ]]; then
             yq -i '.appVersion = "${{inputs.app_version}}"' charts/${{inputs.service}}/Chart.yaml
@@ -50,11 +49,11 @@ jobs:
             git add .
             git commit -m "Update chart"
             git push -u origin HEAD
-            echo 'changes=true' >> $GITHUB_OUTPUT
+            echo 'created=true' >> $GITHUB_OUTPUT
           fi
 
       - name: Create pull request
-        if: steps.create_release.outputs.changes == 'true'
+        if: steps.branch.outputs.created == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

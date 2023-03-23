@@ -1,0 +1,22 @@
+name: Deploy to staging
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  tag:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: tag
+        run: |
+          label=$(gh pr view 1 --json labels --jq '.labels[] | select(.name | startswith("service/")).name')
+          tag="${label#service/}-staging"
+          git tag -f "$tag"
+          git push -f origin "$tag"
