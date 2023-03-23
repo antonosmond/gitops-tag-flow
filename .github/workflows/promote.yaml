@@ -8,6 +8,8 @@ on:
         type: string
         required: true
 
+run-name: Promote ${{inputs.service}} to production
+
 jobs:
   promote:
     runs-on: ubuntu-latest
