@@ -5,7 +5,7 @@ on:
     types:
       - closed
 
-run-name: Deploy to staging
+run-name: Deploy ${{ github.event.pull_request.title }} to staging
 
 jobs:
   tag:
