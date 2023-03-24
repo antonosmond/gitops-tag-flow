@@ -7,6 +7,10 @@ on:
         description: Name of the service
         type: string
         required: true
+      chart-version:
+        description: A specific chart version to rollback to
+        type: string
+        required: false
 
 run-name: Rollback ${{inputs.service}} in production
 
@@ -18,14 +22,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
+          ssh-key: "${{ secrets.DEPLOY_KEY }}"
           fetch-depth: 0
-          persist-credentials: false
 
-      - name: tag
-        env:
-          GITHUB_ACTOR: antonosmond
-          TOKEN: ${{ secrets.WORKFLOW_PAT }}
+      - name: rollback
+        if: inputs.chart-version == ''
         run: |
-          git remote set-url --push origin "https://$GITHUB_ACTOR:$TOKEN@github.com/$GITHUB_REPOSITORY"
           git tag -f "${{ inputs.service }}-production" "${{ inputs.service }}-production-rollback"
+          git push -f --tags
+
+      - name: rollback to ${{ inputs.chart-version }}
+        if: inputs.chart-version != ''
+        run: |
+          git checkout "${{ inputs.service }}/${{ inputs.chart-version }}"
+          git tag -f "${{ inputs.service }}-production"
+          git tag -f "${{ inputs.service }}-production-rollback"
           git push -f --tags

@@ -5,7 +5,7 @@ on:
     types:
       - closed
 
-run-name: Deploy ${{ github.event.pull_request.title }} to staging
+run-name: Deploy ${{ github.event.pull_request.labels.*.name[0] }} to staging
 
 jobs:
   tag:
@@ -15,12 +15,29 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          ssh-key: "${{ secrets.DEPLOY_KEY }}"
+          fetch-depth: 0
 
-      - name: tag
+      - name: Get service name
+        id: get_service
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           label=$(gh pr view ${{ github.event.number }} --json labels --jq '.labels[] | select(.name | startswith("service/")).name')
-          tag="${label#service/}-staging"
-          git tag -f "$tag"
-          git push -f origin "$tag"
+          echo "name=${label#service/}" >> $GITHUB_OUTPUT
+
+      - name: Get chart version
+        id: get_chart
+        run: |
+          echo "version=$(yq '.version' charts/${{ steps.get_service.outputs.name }}/Chart.yaml)" >> $GITHUB_OUTPUT
+
+      - name: tag
+        run: |
+            service="${{ steps.get_service.outputs.name }}"
+            chart="${{ steps.get_chart.outputs.version }}"
+            chart_tag="service/${chart}"
+            staging_tag="service/${service}-staging"
+            git tag -f "$chart_tag"
+            git tag -f "$staging_tag"
+            git push -f --tags
