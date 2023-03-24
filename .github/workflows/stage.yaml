@@ -1,4 +1,4 @@
-name: Stage release
+name: Update chart
 
 on:
   workflow_dispatch:
@@ -12,12 +12,11 @@ on:
         type: string
         required: false
 
-run-name: Stage ${{inputs.service}}
+run-name: Update chart for ${{inputs.service}}
 
 jobs:
-  release:
+  create-pr:
     runs-on: ubuntu-latest
-    name: Stage ${{inputs.service}}
     steps:
 
       - name: Checkout

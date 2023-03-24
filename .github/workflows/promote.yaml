@@ -23,8 +23,8 @@ jobs:
 
       - name: tag
         run: |
-          if git rev-parse "${{ inputs.service }}-production" > /dev/null 2>&1; then
-            git tag -f "${{ inputs.service }}-production-rollback" "${{ inputs.service }}-production"
+          if git rev-parse "${{ inputs.service }}/production" > /dev/null 2>&1; then
+            git tag -f "${{ inputs.service }}/rollback" "${{ inputs.service }}/production"
           fi
-          git tag -f "${{ inputs.service }}-production" "${{ inputs.service }}-staging"
+          git tag -f "${{ inputs.service }}/production" "${{ inputs.service }}/staging"
           git push -f --tags

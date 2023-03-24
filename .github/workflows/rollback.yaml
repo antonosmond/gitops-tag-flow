@@ -28,13 +28,13 @@ jobs:
       - name: rollback
         if: inputs.chart-version == ''
         run: |
-          git tag -f "${{ inputs.service }}-production" "${{ inputs.service }}-production-rollback"
+          git tag -f "${{ inputs.service }}/production" "${{ inputs.service }}/rollback"
           git push -f --tags
 
       - name: rollback to ${{ inputs.chart-version }}
         if: inputs.chart-version != ''
         run: |
           git checkout "${{ inputs.service }}/${{ inputs.chart-version }}"
-          git tag -f "${{ inputs.service }}-production"
-          git tag -f "${{ inputs.service }}-production-rollback"
+          git tag -f "${{ inputs.service }}/production"
+          git tag -f "${{ inputs.service }}/rollback"
           git push -f --tags

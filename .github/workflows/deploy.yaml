@@ -5,7 +5,7 @@ on:
     types:
       - closed
 
-run-name: Deploy ${{ github.event.pull_request.labels.*.name[0] }} to staging
+run-name: Deploy ${{ join(github.event.pull_request.labels.*.name) }} to staging
 
 jobs:
   tag:
@@ -36,8 +36,8 @@ jobs:
         run: |
             service="${{ steps.get_service.outputs.name }}"
             chart="${{ steps.get_chart.outputs.version }}"
-            chart_tag="service/${chart}"
-            staging_tag="service/${service}-staging"
+            chart_tag="${service}/${chart}"
+            staging_tag="${service}/staging"
             git tag -f "$chart_tag"
             git tag -f "$staging_tag"
             git push -f --tags
